@@ -235,3 +235,25 @@ and used the environment variables from
 > environments and on the Development environment you could point it to
 > `localhost` and on the part of the `playbook.yml` that runs only on the
 > Dev VM have tasks/roles that setup the DB on the Dev VM.
+
+This is how your final project will loook like:
+
+```
+my_proj/
+    provisioner/
+        host_vars/
+            dev-vm.yml
+        production/
+            host_vars/
+                prod-web.yml
+            inventory
+        staging/
+            host_vars/
+                staging-web.yml
+            inventory
+        playbook.yml
+    .gitignore
+    MY_SSH_KEY.pem
+    README.md
+    Vagrantfile
+```
