@@ -257,3 +257,15 @@ my_proj/
     README.md
     Vagrantfile
 ```
+
+## Related links
+
+https://www.vagrantup.com/docs/provisioning/ansible_local.html
+
+https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html
+
+https://www.digitalocean.com/community/tutorials/how-to-manage-multistage-environments-with-ansible
+
+http://rosstuck.com/multistage-environments-with-ansible
+
+https://stackoverflow.com/questions/32526774/multistage-deployment-with-ansible
