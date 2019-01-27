@@ -1,0 +1,24 @@
+---
+- name: All envs playbook
+  hosts: all
+  vars:
+    ansible_python_interpreter: "/usr/bin/python3"
+    become: yes
+    # my_env: "DEVELOPMENT"
+
+  tasks:
+    - name: "ALLLLL BLOCK OF PLAYBOOK"
+      debug:
+        msg: "all envs MUST log this {{ my_env }}"
+
+- name: Dev VM only playbook
+  hosts: dev-vm
+  vars:
+    ansible_python_interpreter: "/usr/bin/python3"
+    become: yes
+    # my_env: "DEVELOPMENT"
+
+  tasks:
+    - name: "DEV VM STUFF"
+      debug:
+        msg: "JUST dev MUST log this {{ my_env }}"
