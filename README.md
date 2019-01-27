@@ -1,6 +1,6 @@
 # ansible-mult-stage-sample
 
-This is a sample of hot to organiza Vagrant/Ansible to have 1 local
+This is a sample of how to organize Vagrant/Ansible to have 1 local
 environment for development and 2 cloud ones for staging/production.
 
 Local environment is a Ubuntu 18.04 VirtualBox created by Vagrant and setup
@@ -139,3 +139,99 @@ Notes about development environment:
 - Variables used by Development environment must be set on `dev-vm.yml`
 - Ansible tasks/roles that must be applied on ALL environments must be on `All envs playbook` section on `playbook.yml`
 - Ansible tasks/roles that must be applied only on Dev VM must be on `Dev VM only playbook` section on `playbook.yml`
+
+## Setup staging/production environments
+
+Create 2 Ubuntu 18.04 servers(staging/production) on any cloud provider
+(AWS, Azure, DigitalOcean, etc) and make sure you have the SSH keys to
+access it.
+
+Put the ssh key inside the `my_proj` folder and for safety, add a new line
+to the `.gitignore` file with the name of the ssh key(sample
+`MY_SSH_KEY.pem`).
+
+Inside `my_proj` folder create a folder called `staging` and inside
+the folder `staging` create a folder `host_vars`.
+
+Create a file called `inventory` inside `staging` folder with a single
+line in it as following:
+
+```
+staging-web ansible_host='PUBLIC_ADDRESS_OF_MY_STAGING_EC2' ansible_user='ubuntu' ansible_ssh_private_key_file='/vagrant/MY_SSH_KEY.pem'
+```
+
+> This is the file that Ansible will use to identify servers that belong to
+> our staging environment.
+> Replace `ansible_host` with the IP or public DNS of your staging server;
+> Replace `ansible_user` with username used to SSH your staging server(default
+> usually is `ubuntu` or `root`). Replace `MY_SSH_KEY.pem` with the filename
+> of your SSH key that you put with `my_proj` folder.
+
+Now within `staging/host_vars/` create a file called `staging-web.yml` to
+setup environment variables that belong only to staging environment. Put
+the following content on it:
+
+```
+---
+my_env: "STAGING_VARIABLE"
+```
+
+Now to apply our Ansible playbook to staging server we shell into our
+Dev VM with `vagrant ssh` and move to the `/vagrant` folder with
+`cd /vagrant`. A simple `ls -la` will show that this folder contains
+the contents of `my_proj` folder. This is a shared folder between our
+Dev VM and our computer so any changes done on this folder from the
+Dev VM can be seem on the `my_proj` folder on our computer and
+vice-versa.
+
+> This allows us to open `my_proj` folder on our favorite text editor
+> from our computer and see the changes/run it from within our Dev VM
+> at `/vagrant` folder.
+
+Finally, to apply the Ansible playbook on staging server, use the command
+`ansible-playbook provisioner/playbook.yml -i provisioner/staging`
+
+Production environment will be very similar to Staging, so create a folder
+named `production` withing `my_proj`. Then create a folder `host_vars` within
+`production` folder and add a file called `prod-web.yml` with the following
+content within `my_proj/production/host_vars/`:
+
+```
+---
+my_env: "PRODUCTION_VARIABLE"
+```
+
+The final file to be created is going to be the `inventory` file that must
+be created within `my_proj/production` and will contain a single line with
+the information needed for Ansible to SSH into production's server for
+deployment. Paste the following content on this inventory file replacing
+`ansible_host/ansible_user/ansible_ssh_private_key_file` values as explained
+before during Staging setup:
+
+```
+prod-web ansible_host='PUBLIC_ADDRESS_OF_MY_PRODUCTION_EC2' ansible_user='ubuntu' ansible_ssh_private_key_file='/vagrant/MY_SSH_KEY.pem'
+```
+
+As with Staging, to apply the Ansible playbook to our Production server, shell
+into the Dev VM with `vagrant ssh`, move to the project folder within the VM
+with `cd /vagrant` and run Ansible with the command
+`ansible-playbook provisioner/playbook.yml -i provisioner/production`
+
+
+## What happened!?
+
+Pay attention to the output of Ansible on the first time you ran `vagrant up`.
+It did ran both blocks of `playbook.yml` and used the environment variables
+setup on `my_proj/host_vars/dev-vm.yml`.
+
+When we ran the Ansible playbook to staging/production it just applied the
+block of the `playbook.yml` that is supposed to run on all environments
+and used the environment variables from
+`my_proj/staging/host_vars/staging-web.yml` and
+`my_proj/production/host_vars/prod-web.yml` respectively.
+
+> So, lets suppose your Staging/Production environment uses DBs hosted on
+> AWS RDS, you could have variables pointing for the RDS of each of these
+> environments and on the Development environment you could point it to
+> `localhost` and on the part of the `playbook.yml` that runs only on the
+> Dev VM have tasks/roles that setup the DB on the Dev VM.
